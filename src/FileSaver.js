@@ -1,172 +1,201 @@
-/*
-* FileSaver.js
-* A saveAs() FileSaver implementation.
-*
-* By Eli Grey, http://eligrey.com
-*
-* License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)
-* source  : http://purl.eligrey.com/github/FileSaver.js
-*/
-
-// The one and only way of getting global scope in all environments
-// https://stackoverflow.com/q/3277182/1008999
-var _global = typeof window === 'object' && window.window === window
-  ? window : typeof self === 'object' && self.self === self
-  ? self : typeof global === 'object' && global.global === global
-  ? global
-  : this
-
-function bom (blob, opts) {
-  if (typeof opts === 'undefined') opts = { autoBom: false }
-  else if (typeof opts !== 'object') {
-    console.warn('Deprecated: Expected third argument to be a object')
-    opts = { autoBom: !opts }
-  }
-
-  // prepend BOM for UTF-8 XML and text/* types (including HTML)
-  // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
-  if (opts.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
-    return new Blob([String.fromCharCode(0xFEFF), blob], { type: blob.type })
-  }
-  return blob
-}
-
-function download (url, name, opts) {
-  var xhr = new XMLHttpRequest()
-  xhr.open('GET', url)
-  xhr.responseType = 'blob'
-  xhr.onload = function () {
-    saveAs(xhr.response, name, opts)
-  }
-  xhr.onerror = function () {
-    console.error('could not download file')
-  }
-  xhr.send()
-}
-
-function corsEnabled (url) {
-  var xhr = new XMLHttpRequest()
-  // use sync to avoid popup blocker
-  xhr.open('HEAD', url, false)
-  try {
-    xhr.send()
-  } catch (e) {}
-  return xhr.status >= 200 && xhr.status <= 299
-}
-
-// `a.click()` doesn't work for all browsers (#465)
-function click (node) {
-  try {
-    node.dispatchEvent(new MouseEvent('click'))
-  } catch (e) {
-    var evt = document.createEvent('MouseEvents')
-    evt.initMouseEvent('click', true, true, window, 0, 0, 0, 80,
-                          20, false, false, false, false, 0, null)
-    node.dispatchEvent(evt)
-  }
-}
-
-// Detect WebView inside a native macOS app by ruling out all browsers
-// We just need to check for 'Safari' because all other browsers (besides Firefox) include that too
-// https://www.whatismybrowser.com/guides/the-latest-user-agent/macos
-var isMacOSWebView = _global.navigator && /Macintosh/.test(navigator.userAgent) && /AppleWebKit/.test(navigator.userAgent) && !/Safari/.test(navigator.userAgent)
-
-var saveAs = _global.saveAs || (
-  // probably in some web worker
-  (typeof window !== 'object' || window !== _global)
-    ? function saveAs () { /* noop */ }
-
-  // Use download attribute first if possible (#193 Lumia mobile) unless this is a macOS WebView
-  : ('download' in HTMLAnchorElement.prototype && !isMacOSWebView)
-  ? function saveAs (blob, name, opts) {
-    var URL = _global.URL || _global.webkitURL
-    // Namespace is used to prevent conflict w/ Chrome Poper Blocker extension (Issue #561)
-    var a = document.createElementNS('http://www.w3.org/1999/xhtml', 'a')
-    name = name || blob.name || 'download'
-
-    a.download = name
-    a.rel = 'noopener' // tabnabbing
-
-    // TODO: detect chrome extensions & packaged apps
-    // a.target = '_blank'
-
-    if (typeof blob === 'string') {
-      // Support regular links
-      a.href = blob
-      if (a.origin !== location.origin) {
-        corsEnabled(a.href)
-          ? download(blob, name, opts)
-          : click(a, a.target = '_blank')
-      } else {
-        click(a)
+{
+  "schema": {
+    "img": {
+      "name": "img",
+      "type": "static",
+      "tag": "img",
+      "src": "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=300",
+      "align": "left",
+      "builder": {
+        "type": "img",
+        "label": "Image"
+      },
+      "height": "120",
+      "columns": {
+        "container": 3
       }
-    } else {
-      // Support blobs
-      a.href = URL.createObjectURL(blob)
-      setTimeout(function () { URL.revokeObjectURL(a.href) }, 4E4) // 40s
-      setTimeout(function () { click(a) }, 0)
-    }
-  }
-
-  // Use msSaveOrOpenBlob as a second approach
-  : 'msSaveOrOpenBlob' in navigator
-  ? function saveAs (blob, name, opts) {
-    name = name || blob.name || 'download'
-
-    if (typeof blob === 'string') {
-      if (corsEnabled(blob)) {
-        download(blob, name, opts)
-      } else {
-        var a = document.createElement('a')
-        a.href = blob
-        a.target = '_blank'
-        setTimeout(function () { click(a) })
+    },
+    "h1": {
+      "name": "h1",
+      "type": "static",
+      "tag": "h1",
+      "content": "ORDEN DE TRABAJO",
+      "align": "left",
+      "builder": {
+        "type": "h1",
+        "label": "Form heading"
       }
-    } else {
-      navigator.msSaveOrOpenBlob(bom(blob, opts), name)
-    }
-  }
-
-  // Fallback to using FileReader and a popup
-  : function saveAs (blob, name, opts, popup) {
-    // Open a popup immediately do go around popup blocker
-    // Mostly only available on user interaction and the fileReader is async so...
-    popup = popup || open('', '_blank')
-    if (popup) {
-      popup.document.title =
-      popup.document.body.innerText = 'downloading...'
-    }
-
-    if (typeof blob === 'string') return download(blob, name, opts)
-
-    var force = blob.type === 'application/octet-stream'
-    var isSafari = /constructor/i.test(_global.HTMLElement) || _global.safari
-    var isChromeIOS = /CriOS\/[\d]+/.test(navigator.userAgent)
-
-    if ((isChromeIOS || (force && isSafari) || isMacOSWebView) && typeof FileReader !== 'undefined') {
-      // Safari doesn't allow downloading of blob URLs
-      var reader = new FileReader()
-      reader.onloadend = function () {
-        var url = reader.result
-        url = isChromeIOS ? url : url.replace(/^data:[^;]*;/, 'data:attachment/file;')
-        if (popup) popup.location.href = url
-        else location = url
-        popup = null // reverse-tabnabbing #460
+    },
+    "divider": {
+      "name": "divider",
+      "type": "static",
+      "tag": "hr",
+      "builder": {
+        "type": "divider",
+        "label": "Divider"
       }
-      reader.readAsDataURL(blob)
-    } else {
-      var URL = _global.URL || _global.webkitURL
-      var url = URL.createObjectURL(blob)
-      if (popup) popup.location = url
-      else location.href = url
-      popup = null // reverse-tabnabbing #460
-      setTimeout(function () { URL.revokeObjectURL(url) }, 4E4) // 40s
+    },
+    "text": {
+      "name": "text",
+      "type": "text",
+      "label": "Short text",
+      "builder": {
+        "type": "text",
+        "label": "Short text"
+      },
+      "readonly": true
+    },
+    "textarea": {
+      "name": "textarea",
+      "type": "textarea",
+      "label": "Long text",
+      "builder": {
+        "type": "textarea",
+        "label": "Long text"
+      }
+    },
+    "number": {
+      "name": "number",
+      "type": "text",
+      "inputType": "number",
+      "rules": [
+        "nullable",
+        "numeric"
+      ],
+      "autocomplete": "off",
+      "label": "Number",
+      "builder": {
+        "type": "number",
+        "label": "Number"
+      }
+    },
+    "checkboxgroup": {
+      "name": "checkboxgroup",
+      "type": "checkboxgroup",
+      "items": [
+        "LOTE1",
+        "LOTE 2",
+        "LOTE 3"
+      ],
+      "label": "Multiple choice",
+      "builder": {
+        "type": "checkboxgroup",
+        "label": "Multiple choice"
+      }
+    },
+    "matrixMulti": {
+      "name": "matrixMulti",
+      "type": "matrix",
+      "cols": [
+        {
+          "label": "Column 1",
+          "value": "column_1"
+        },
+        {
+          "label": "Column 2",
+          "value": "column_2"
+        }
+      ],
+      "rows": [
+        {
+          "label": "Row 1",
+          "value": "1"
+        },
+        {
+          "label": "Row 2",
+          "value": "row_2"
+        }
+      ],
+      "inputType": {
+        "type": "checkbox"
+      },
+      "builder": {
+        "type": "matrixMulti",
+        "label": "Multiple choice matrix"
+      }
+    },
+    "table": {
+      "name": "table",
+      "type": "matrix",
+      "cols": [
+        {
+          "label": "Column 1",
+          "value": "column_1",
+          "inputType": {
+            "type": "checkbox"
+          }
+        },
+        {
+          "label": "Column 2",
+          "value": "column_2",
+          "inputType": {
+            "type": "multiselect",
+            "search": true,
+            "closeOnSelect": false
+          },
+          "items": [
+            {
+              "label": "LTS",
+              "value": "lts"
+            },
+            {
+              "label": "KGS",
+              "value": "kgs"
+            },
+            {
+              "label": "UNIDAD",
+              "value": "unidad"
+            }
+          ]
+        }
+      ],
+      "rows": [
+        {
+          "label": "VENENO",
+          "value": "veneno"
+        },
+        {
+          "label": "Row 2",
+          "value": "row_2"
+        }
+      ],
+      "inputType": {
+        "type": "text",
+        "inputType": "number",
+        "autocomplete": "off",
+        "forceNumbers": true
+      },
+      "presets": [
+        "matrix-table"
+      ],
+      "builder": {
+        "type": "table",
+        "label": "Matrix table"
+      },
+      "label": "INSUMOS"
+    },
+    "submit": {
+      "name": "submit",
+      "type": "button",
+      "buttonLabel": "Submit",
+      "submits": true,
+      "builder": {
+        "type": "submit",
+        "label": "Submit"
+      }
     }
-  }
-)
-
-_global.saveAs = saveAs.saveAs = saveAs
-
-if (typeof module !== 'undefined') {
-  module.exports = saveAs;
+  },
+  "form": {
+    "nesting": true
+  },
+  "export": {
+    "output": "inline",
+    "api": "options",
+    "theme": "none"
+  },
+  "builder": {
+    "name": "MyForm",
+    "elements": []
+  },
+  "theme": {}
 }
