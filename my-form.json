@@ -1,0 +1,201 @@
+{
+  "schema": {
+    "img": {
+      "name": "img",
+      "type": "static",
+      "tag": "img",
+      "src": "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=300",
+      "align": "left",
+      "builder": {
+        "type": "img",
+        "label": "Image"
+      },
+      "height": "120",
+      "columns": {
+        "container": 3
+      }
+    },
+    "h1": {
+      "name": "h1",
+      "type": "static",
+      "tag": "h1",
+      "content": "ORDEN DE TRABAJO",
+      "align": "left",
+      "builder": {
+        "type": "h1",
+        "label": "Form heading"
+      }
+    },
+    "divider": {
+      "name": "divider",
+      "type": "static",
+      "tag": "hr",
+      "builder": {
+        "type": "divider",
+        "label": "Divider"
+      }
+    },
+    "text": {
+      "name": "text",
+      "type": "text",
+      "label": "Short text",
+      "builder": {
+        "type": "text",
+        "label": "Short text"
+      },
+      "readonly": true
+    },
+    "textarea": {
+      "name": "textarea",
+      "type": "textarea",
+      "label": "Long text",
+      "builder": {
+        "type": "textarea",
+        "label": "Long text"
+      }
+    },
+    "number": {
+      "name": "number",
+      "type": "text",
+      "inputType": "number",
+      "rules": [
+        "nullable",
+        "numeric"
+      ],
+      "autocomplete": "off",
+      "label": "Number",
+      "builder": {
+        "type": "number",
+        "label": "Number"
+      }
+    },
+    "checkboxgroup": {
+      "name": "checkboxgroup",
+      "type": "checkboxgroup",
+      "items": [
+        "LOTE1",
+        "LOTE 2",
+        "LOTE 3"
+      ],
+      "label": "Multiple choice",
+      "builder": {
+        "type": "checkboxgroup",
+        "label": "Multiple choice"
+      }
+    },
+    "matrixMulti": {
+      "name": "matrixMulti",
+      "type": "matrix",
+      "cols": [
+        {
+          "label": "Column 1",
+          "value": "column_1"
+        },
+        {
+          "label": "Column 2",
+          "value": "column_2"
+        }
+      ],
+      "rows": [
+        {
+          "label": "Row 1",
+          "value": "1"
+        },
+        {
+          "label": "Row 2",
+          "value": "row_2"
+        }
+      ],
+      "inputType": {
+        "type": "checkbox"
+      },
+      "builder": {
+        "type": "matrixMulti",
+        "label": "Multiple choice matrix"
+      }
+    },
+    "table": {
+      "name": "table",
+      "type": "matrix",
+      "cols": [
+        {
+          "label": "Column 1",
+          "value": "column_1",
+          "inputType": {
+            "type": "checkbox"
+          }
+        },
+        {
+          "label": "Column 2",
+          "value": "column_2",
+          "inputType": {
+            "type": "multiselect",
+            "search": true,
+            "closeOnSelect": false
+          },
+          "items": [
+            {
+              "label": "LTS",
+              "value": "lts"
+            },
+            {
+              "label": "KGS",
+              "value": "kgs"
+            },
+            {
+              "label": "UNIDAD",
+              "value": "unidad"
+            }
+          ]
+        }
+      ],
+      "rows": [
+        {
+          "label": "VENENO",
+          "value": "veneno"
+        },
+        {
+          "label": "Row 2",
+          "value": "row_2"
+        }
+      ],
+      "inputType": {
+        "type": "text",
+        "inputType": "number",
+        "autocomplete": "off",
+        "forceNumbers": true
+      },
+      "presets": [
+        "matrix-table"
+      ],
+      "builder": {
+        "type": "table",
+        "label": "Matrix table"
+      },
+      "label": "INSUMOS"
+    },
+    "submit": {
+      "name": "submit",
+      "type": "button",
+      "buttonLabel": "Submit",
+      "submits": true,
+      "builder": {
+        "type": "submit",
+        "label": "Submit"
+      }
+    }
+  },
+  "form": {
+    "nesting": true
+  },
+  "export": {
+    "output": "inline",
+    "api": "options",
+    "theme": "none"
+  },
+  "builder": {
+    "name": "MyForm",
+    "elements": []
+  },
+  "theme": {}
+}
